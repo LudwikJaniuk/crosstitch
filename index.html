@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="main.js"></script>
+</head>
+<h1><i>CROSSSTITCH INSTRUCTION GENERATOR</i></h1>
+<div 
+  id="output" 
+  style="min-height: 200px; white-space: pre; border: 1px solid black;"
+  ondragenter="event.stopPropagation(); event.preventDefault(); onDragEnter(event);"
+  ondragover="event.stopPropagation(); event.preventDefault();" 
+  ondrop="event.stopPropagation(); event.preventDefault(); onDrop(event);"
+  >
+  DRAG YOUR PIXEL IMAGE HERE
+</div>
+
+<canvas id="myCanvas"></canvas>
+
+<script>
+  function onDragEnter(event) {
+    output('GREAT... NOW DROP IT....')
+  }
+  function onDrop(event) {
+    var files = event.dataTransfer.files;
+    output("Got " + files.length + " file" + (files.length > 1 ? "s" : "") + ".")
+    if (files.length > 1) {
+      output("Please just drop one file. Try again!")
+      return;
+    }
+    if (files.length < 1) {
+      output("How did you manage to drop 0 files? Try again...");
+      return;
+    }
+    const file = files[0];
+    console.log(file);
+
+    if (!file.type.startsWith('image/')) { 
+      output("I don't recognize this file as an image. Try another one?");
+      return;
+    }
+    const image = file;
+    output("It's an image, great! I'll show it below:");
+
+    createImageBitmap(file).then(paintBitmap);
+  }
+
+  function paintBitmap(bitmap) {
+    const ctx = document.getElementById('myCanvas').getContext('2d');
+    ctx.drawImage(bitmap, 0, 0);
+    const imageData = ctx.getImageData(0, 0, bitmap.width, bitmap.height).data;
+    console.log(imageData);
+    console.log(groupRGBA(imageData));
+    runPipeline(groupRGBA(imageData), bitmap.width)
+  }
+
+  function groupRGBA(data) {
+    const ret = [];
+    for (var i = 0; i < data.length; i+=4) {
+      ret.push([
+        data[i+0],
+        data[i+1],
+        data[i+2],
+        data[i+3]
+      ])
+    }
+    return ret;
+  }
+
+  function clearConsole() {
+    document.getElementById("output").textContent = "";
+  }
+  function output(text) {
+    document.getElementById("output").textContent += text + "\n";
+  }
+
+</script>
+</body>
+</html>
